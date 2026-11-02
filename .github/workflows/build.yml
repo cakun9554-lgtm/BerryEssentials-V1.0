@@ -1,5 +1,4 @@
 
-
 name: Build BerryEssentials
 
 on:
@@ -23,17 +22,41 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
-          cache: maven
-          cache-dependency-path: BerryEssentials/pom.xml
 
-      - name: Build plugin
-        working-directory: BerryEssentials
-        run: mvn --batch-mode -U clean package
+      - name: Find Maven Project
+        id: locate
+        shell: bash
+        run: |
+          POM=$(find . -type f -name pom.xml \
+            -not -path './.git/*' -print -quit)
+
+          if [ -z "$POM" ]; then
+            echo "ERROR: pom.xml tidak ditemukan!"
+            echo "Daftar file repository:"
+            find . -maxdepth 5 -type f | head -100
+            exit 1
+          fi
+
+          DIR=$(dirname "$POM")
+
+          echo "pom=$POM" >> "$GITHUB_OUTPUT"
+          echo "project_dir=$DIR" >> "$GITHUB_OUTPUT"
+
+          echo "Project ditemukan: $POM"
+
+      - name: Build BerryEssentials
+        run: |
+          mvn --batch-mode -U \
+            -f "${{ steps.locate.outputs.pom }}" \
+            clean package
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: BerryEssentials-JAR
-          path: BerryEssentials/target/BerryEssentials.jar
+          path: ${{ steps.locate.outputs.project_dir }}/target/*.jar
           if-no-files-found: error
+
+
+
 
