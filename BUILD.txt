@@ -1,0 +1,8 @@
+BerryEssentials 0.2.0 build notes
+
+Target: Paper 26.3
+Required: Java 25, Maven 3.9+
+Command: mvn clean package
+Expected output: target/BerryEssentials.jar
+
+This environment currently has Java 21, no Maven, and no outbound network access, so a verified JAR cannot be produced here. Source compilation and live server testing remain required.
