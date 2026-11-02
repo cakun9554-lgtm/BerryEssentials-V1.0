@@ -1,4 +1,5 @@
 
+
 name: Build BerryEssentials
 
 on:
@@ -23,26 +24,28 @@ jobs:
           distribution: temurin
           java-version: '25'
 
-      - name: Find Maven Project
+      - name: Extract Source ZIP
+        run: |
+          mkdir -p extracted
+          unzip -o BerryEssentials-source.zip -d extracted
+
+      - name: Find pom.xml
         id: locate
         shell: bash
         run: |
-          POM=$(find . -type f -name pom.xml \
-            -not -path './.git/*' -print -quit)
+          POM=$(find extracted -type f -name pom.xml -print -quit)
 
           if [ -z "$POM" ]; then
-            echo "ERROR: pom.xml tidak ditemukan!"
-            echo "Daftar file repository:"
-            find . -maxdepth 5 -type f | head -100
+            echo "pom.xml NOT FOUND!"
+            find extracted -maxdepth 5 -type f
             exit 1
           fi
 
           DIR=$(dirname "$POM")
-
           echo "pom=$POM" >> "$GITHUB_OUTPUT"
-          echo "project_dir=$DIR" >> "$GITHUB_OUTPUT"
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
 
-          echo "Project ditemukan: $POM"
+          echo "Found Maven project: $POM"
 
       - name: Build BerryEssentials
         run: |
@@ -54,9 +57,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: BerryEssentials-JAR
-          path: ${{ steps.locate.outputs.project_dir }}/target/*.jar
+          path: ${{ steps.locate.outputs.dir }}/target/*.jar
           if-no-files-found: error
-
-
-
-
